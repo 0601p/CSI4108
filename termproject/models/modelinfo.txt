@@ -1,0 +1,54 @@
+1st model
+net = Net(51, 16, 1, 2).to(device)
+
+class Net(torch.nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim, layers):
+        super(Net, self).__init__()
+        self.rnn = torch.nn.LSTM(input_dim, hidden_dim, num_layers=layers, batch_first=True)
+        self.relu = torch.nn.ReLU()
+        self.fc1 = torch.nn.Linear(hidden_dim, hidden_dim, bias=True)
+        self.fc2 = torch.nn.Linear(hidden_dim, hidden_dim, bias=True)
+        self.fc3 = torch.nn.Linear(hidden_dim, output_dim, bias=True)
+
+    def forward(self, x):
+        x, _status = self.rnn(x)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.fc3(x[:, -1])
+        return x
+
+
+2nd model
+net = Net(51, 32, 1, 3).to(device)
+
+3rd model
+net = Net(51, 32, 1, 1, 5).to(device)
+
+class Net(torch.nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim, layers_rnn, layers_fc):
+        super(Net, self).__init__()
+        self.rnn = torch.nn.LSTM(input_dim, hidden_dim, num_layers=layers_rnn, batch_first=True)
+        fclist = []
+        for i in range(layers_fc - 1): # layers_fc should be over 1
+            fclist.append(torch.nn.Linear(hidden_dim, hidden_dim, bias=True))
+            fclist.append(torch.nn.ReLU())
+        
+        self.fc_seq = torch.nn.Sequential(*fclist)
+        self.fc_last = torch.nn.Linear(hidden_dim, output_dim, bias=True)
+
+    def forward(self, x):
+        x, _status = self.rnn(x)
+        x = self.fc_seq(x)
+        x = self.fc_last(x[:, -1])
+        return x
+
+4th model
+net = Net(51, 32, 1, 1, 5).to(device)
+
+5th model
+net = Net(51, 16, 1, 1, 10).to(device)
+
+6th model
+net = Net(51, 16, 1, 1, 3).to(device)
